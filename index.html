@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quadratic Function Graph</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "myfont";
+        src: url("FiraCode-Bold.ttf");
+      }
+      h1 {
+        text-align: center;
+        color: #fff;
+      }
+      body {
+        height: 135vh;
+        width: 100%;
+        font-family: "myfont";
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(50deg, #000, #391906);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+      .shape {
+        position: absolute;
+        border-radius: 20px;
+        opacity: 0.8;
+        background: rgba(255, 255, 255, 0.15);
+        animation: float 10s infinite ease-in-out;
+      }
+      .shape1 {
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        top: 10%;
+        left: 5%;
+        animation-delay: 0s;
+      }
+      .shape2 {
+        width: 250px;
+        height: 250px;
+        top: 40%;
+        left: 70%;
+        animation-delay: 1s;
+      }
+      .shape3 {
+        width: 200px;
+        height: 200px;
+        top: 75%;
+        left: 35%;
+        animation-delay: 2s;
+      }
+      @keyframes float {
+        0% {
+          transform: translateY(0) rotate(0);
+        }
+        50% {
+          transform: translateY(-100px) rotate(20deg);
+        }
+        100% {
+          transform: translateY(0) rotate(0);
+        }
+      }
+      .container {
+        text-align: center;
+        margin-top: 20px;
+        color: #fff;
+      }
+      #dataTable {
+        margin: 20px auto;
+        border-collapse: collapse;
+        border-radius: 10px;
+        background-color: transparent;
+      }
+      #dataTable th,
+      #dataTable td {
+        border: 2px solid #fff;
+        padding: 8px;
+        font-size: 1.2em;
+      }
+      label,
+      input {
+        font-size: 3em;
+        margin-left: 10%;
+        color: #fff;
+      }
+      #graph {
+        width: 85%;
+        margin-bottom: 50%;
+        text-align: center;
+        align-items: center;
+        border-radius: 60px;
+        margin-left: 8%;
+        padding: 20px;
+      }
+      button {  
+        border-radius: 5px;
+        border: #fff 2px solid;
+        background-color: transparent;
+        color: #fff;
+        font-family: "myfont";
+        padding: 10px 20px;
+        font-size: 1em;
+        margin-left: 10%;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #ddd;
+      }
+      .the-end {
+        text-align: center;
+        background-color: #000000;
+        color: #fff;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        padding: 10px 0;
+        z-index: 9999;
+      }
+      input[type="text"]{
+          color: #fff;
+          background-color: transparent;
+          border-radius: 10px;
+      }
+      @media (max-width: 1000px) {
+        #graph {
+          width: 100%;
+        }
+        label,
+        input {
+          font-size: 0.9em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shape shape1"></div>
+    <div class="shape shape2"></div>
+    <div class="shape shape3"></div>
+
+    <div class="the-end">
+      <p>&copy; Simple by: Khaled Khamis</p>
+    </div>
+
+    <h1>Quadratic Function</h1>
+
+    <label for="functionInput">F(X) = </label>
+    <input type="text" id="functionInput" placeholder="x**2+1" />
+
+    <label for="start">Start: </label>
+    <input type="text" id="start" placeholder="0" />
+
+    <label for="end">End: </label>
+    <input type="text" id="end" placeholder="10" />
+
+    <button onclick="plotQuadraticFunc()">Show Table</button>
+
+    <div class="container" id="container">
+      <h3 id="headPiontHtml"></h3>
+      <h3 id="axisOfSymmetryEquation"></h3>
+      <h3 id="mostValueOfFunction"></h3>
+      <h3 id="groubOfAnswer"></h3>
+
+      <h3>Data Table</h3>
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>X</th>
+            <th>F(X)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div id="graph"></div>
+    <script>
+      document
+        .getElementById("functionInput")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            document.getElementById("start").focus();
+          }
+        });
+      document
+        .getElementById("start")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            document.getElementById("end").focus();
+          }
+        });
+
+      document
+        .getElementById("end")
+        .addEventListener("keydown", function (event) {
+          if (event.key === "Enter") {
+            plotQuadraticFunc();
+          }
+        });
+
+      let container = document.getElementById("container");
+      container.style.display = "none";
+
+      function parseExpression(expression) {
+        return expression.replace(/x\*\*([0-9]+)/g, "Math.pow(x, $1)");
+      }
+      function plotQuadraticFunc() {
+        container.style.display = "block";
+
+        let funcInput = document.getElementById("functionInput").value;
+        funcInput = funcInput.toLowerCase();
+        funcInput = parseExpression(funcInput);
+
+        let start = parseInt(document.getElementById("start").value);
+        let end = parseInt(document.getElementById("end").value) + 1;
+
+        let xValues = [];
+        let yValues = [];
+
+        let tableBody = document.querySelector("#dataTable tbody");
+        tableBody.innerHTML = "";
+
+        let xRow = document.createElement("th");
+        let yRow = document.createElement("th");
+
+        for (let x = start; x < end; x++) {
+          xValues.push(x);
+          try {
+            let funcWithNum = funcInput.replace(/x/g, x);
+            let result = eval(funcWithNum);
+            yValues.push(result);
+
+            let xCell = document.createElement("td");
+            let yCell = document.createElement("td");
+      
+            xCell.textContent = x;
+            yCell.textContent = result;
+
+            xRow.appendChild(xCell);
+            yRow.appendChild(yCell);
+          } catch (error) {
+            
+            return alert("Error in function expression.");
+          }
+        }
+
+        tableBody.appendChild(xRow);
+        tableBody.appendChild(yRow);
+        let trace = {
+          x: xValues,
+          y: yValues,
+          
+          mode: "lines+markers",
+          type: "scatter",
+          line: { shape: "spline" },
+        };
+
+        let layout = {
+          title: "Quadratic Function",
+          xaxis: {
+            title: "X",
+            showline: true,
+            linewidth: 2,
+            linecolor: "black",
+            range: [Math.min(...xValues) - 10, Math.max(...xValues) + 10],
+          },
+          yaxis: {
+            title: "Y",
+            showline: true,
+            linewidth: 2,
+            linecolor: "black",
+            range: [Math.min(...yValues) - 10, Math.max(...yValues) + 10],
+          },
+        };
+
+        Plotly.newPlot("graph", [trace], layout);
+        
+        details = () => {
+          let headPiontHtml = document.getElementById("headPiontHtml");
+          let axisOfSymmetryEquationHtml = document.getElementById("axisOfSymmetryEquation");
+          let mostValueOfFunctionHtml = document.getElementById("mostValueOfFunction");
+
+          let headPointX = xValues[Math.floor(xValues.length/2)]
+          let headPointY = yValues[Math.floor(yValues.length/2)]
+          
+          headPiontHtml.innerHTML = `Head Point: (${headPointX}, ${headPointY})`
+          axisOfSymmetryEquationHtml.innerHTML = `Axis Of Symmetry Equation: X = ${headPointX}`
+          mostValueOfFunctionHtml.innerHTML = `Most Value Of Function: ${headPointY}`
+
+        }
+        equalGroupOfAnswer = () => {
+          let groubOfAnswerHtml = document.getElementById("groubOfAnswer");
+          let zeroArr  = []
+          for (let index = 0; index < yValues.length; index++) {
+            if (yValues[index] === 0) {
+              zeroArr.push(index)
+            }
+          }
+          if (zeroArr.length === 2) {
+            groubOfAnswerHtml.innerHTML = `Groub Of Answers: {${xValues[zeroArr[0]]}, ${xValues[zeroArr[1]]}}`
+          }else if (zeroArr.length === 1) {
+            groubOfAnswerHtml.innerHTML = `Groub Of Answers: {${xValues[zeroArr[0]]}}`
+            
+          }else{
+            groubOfAnswerHtml.innerHTML = `Groub Of Answers: Embty(Phay)`
+
+          }
+          
+        }
+        equalGroupOfAnswer();
+        details();
+      }
+    </script>
+  </body>
+</html>
